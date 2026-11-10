@@ -39,7 +39,7 @@ function Chips({ opts, value, onPick }: { opts: readonly Opt[]; value: string; o
 
 function Step({ n, title, sub, children }: { n: number; title: string; sub?: string; children: React.ReactNode }) {
   return (
-    <div className="relative rounded-3xl border border-line bg-panel/80 p-5">
+    <div data-focus className="relative rounded-3xl border border-line bg-panel/80 p-5">
       <div className="mb-3 flex items-center gap-3">
         <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-lime text-xs font-bold text-ink">{n}</span>
         <div>

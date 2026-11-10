@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Builder from "@/components/Builder";
+import FocusFx from "@/components/FocusFx";
 import Reveal from "@/components/Reveal";
 import ShareBar from "@/components/ShareBar";
 import { LOGO_LOCKUP } from "@/lib/brand";
@@ -53,7 +54,7 @@ const setupHref = (x: SetupStat, extra = "") => `/?${new URLSearchParams({ pair:
 
 function SetupRow({ x, rank, badge }: { x: SetupStat; rank: number; badge: string }) {
   return (
-    <Link href={setupHref(x, "&pre=1#build")} className="flex items-center gap-3 rounded-2xl border border-line bg-panel/80 p-3.5 transition hover:border-lime/50 active:scale-[0.99]">
+    <Link data-focus href={setupHref(x, "&pre=1#build")} className="flex items-center gap-3 rounded-2xl border border-line bg-panel/80 p-3.5 transition hover:border-lime/50 active:scale-[0.99]">
       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/[0.06] text-xs font-bold text-mute">{rank}</span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-semibold">{setupName(x)}</div>
@@ -75,7 +76,7 @@ function LaunchForReal({ className = "" }: { className?: string }) {
       href={VIBEVIBE_SITE}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center justify-center gap-2 rounded-full border border-lime/60 px-5 py-3 text-sm font-semibold text-lime transition hover:bg-lime hover:text-ink ${className}`}
+      className={`press inline-flex items-center justify-center gap-2 rounded-full border border-lime/60 px-5 py-3 text-sm font-semibold text-lime transition hover:bg-lime hover:text-ink ${className}`}
     >
       Ready for real? Launch on vibe/vibe ↗
     </a>
@@ -119,7 +120,7 @@ export default async function Home({ searchParams }: Props) {
 
   const result = ran && (
     <section id="result" className="scroll-mt-4">
-      <div className="relative overflow-hidden rounded-[2rem] border border-lime/25 bg-gradient-to-b from-[#121626] to-panel p-5 sm:p-8">
+      <div data-focus className="relative overflow-hidden rounded-[2rem] border border-lime/25 bg-gradient-to-b from-[#121626] to-panel p-5 sm:p-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-lime/10 blur-3xl" />
         <div className="flex items-center gap-3">
           {who.handle ? (
@@ -209,13 +210,13 @@ export default async function Home({ searchParams }: Props) {
         </p>
       </div>
 
-      <div className="mt-4 rounded-3xl border border-dashed border-lime/30 p-5 text-center">
+      <div data-focus className="mt-4 rounded-3xl border border-dashed border-lime/30 p-5 text-center">
         <div className="text-sm text-mute">Liked your dry run?</div>
         <LaunchForReal className="mt-3 w-full sm:w-auto" />
       </div>
 
       {top && (
-        <div className="mt-4 rounded-3xl border border-line bg-panel/80 p-5 sm:p-7">
+        <div data-focus className="mt-4 rounded-3xl border border-line bg-panel/80 p-5 sm:p-7">
           <h3 className="font-semibold">Compare · best {pairLabel(r.query.pair)} setup</h3>
           <p className="mt-1 text-xs text-mute">Highest graduation rate for this pair among setups with {BEST_MIN}+ real launches (pair + opening buy + tax).</p>
           {sameAsTop ? (
@@ -246,7 +247,7 @@ export default async function Home({ searchParams }: Props) {
               </div>
               <Link
                 href={`${setupHref(top)}${persona ? `&${persona}` : ""}#result`}
-                className="mt-5 flex w-full items-center justify-center rounded-full bg-lime px-5 py-3 text-sm font-bold text-ink transition active:scale-95"
+                className="press mt-5 flex w-full items-center justify-center rounded-full bg-lime px-5 py-3 text-sm font-bold text-ink transition active:scale-95"
               >
                 Try that setup →
               </Link>
@@ -256,7 +257,7 @@ export default async function Home({ searchParams }: Props) {
       )}
 
       {r.tweaks.length > 1 && (
-        <div className="mt-4 rounded-3xl border border-line bg-panel/80 p-5 sm:p-7">
+        <div data-focus className="mt-4 rounded-3xl border border-line bg-panel/80 p-5 sm:p-7">
           <h3 className="font-semibold">Opening buy vs. graduation · {pairLabel(r.query.pair)} pair</h3>
           <div className="mt-4 space-y-2.5">
             {r.tweaks.map((t) => (
@@ -289,7 +290,7 @@ export default async function Home({ searchParams }: Props) {
           <h3 className="mb-3 font-semibold">Real launches like yours</h3>
           <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
             {r.examples.map((e) => (
-              <a key={e.token} href={e.url} target="_blank" rel="noopener noreferrer" className="group rounded-2xl border border-line bg-panel/80 p-4 transition hover:border-lime/50">
+              <a data-focus key={e.token} href={e.url} target="_blank" rel="noopener noreferrer" className="group rounded-2xl border border-line bg-panel/80 p-4 transition hover:border-lime/50">
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <div className="truncate font-semibold group-hover:text-lime">{e.name || e.symbol}</div>
@@ -321,7 +322,7 @@ export default async function Home({ searchParams }: Props) {
         ["📊", "We replay real history", `We match your setup against ${g.launches.toLocaleString("en-US")} real vibe/vibe launches and count what happened.`],
         ["🃏", "Get your card", "Your odds, your launch personality and a card made to share. Then launch for real if you like it."],
       ].map(([icon, t, d], i) => (
-        <div key={t} className="rounded-3xl border border-line bg-panel/80 p-5">
+        <div data-focus key={t} className="rounded-3xl border border-line bg-panel/80 p-5">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-mute">
             <span className="text-lime">0{i + 1}</span> · {icon}
           </div>
@@ -344,7 +345,7 @@ export default async function Home({ searchParams }: Props) {
         </a>
       </header>
 
-      <section className={ran ? "mb-6" : "mb-10 pt-4 sm:pt-10"}>
+      <section data-focus className={`rounded-[2rem] border border-transparent ${ran ? "mb-6" : "-mx-2 mb-10 px-2 pt-4 sm:pt-10"}`}>
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-3 py-1 text-[11px] text-mute">
           <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-lime" /> Robinhood Chain testnet · {g.launches.toLocaleString("en-US")} real launches
         </div>
@@ -360,7 +361,7 @@ export default async function Home({ searchParams }: Props) {
               brag about.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a href="#build" className="rounded-full bg-lime px-6 py-4 text-center text-base font-bold text-ink shadow-[0_0_40px_rgba(198,255,61,0.25)] transition active:scale-95">
+              <a href="#build" className="press rounded-full bg-lime px-6 py-4 text-center text-base font-bold text-ink shadow-[0_0_40px_rgba(198,255,61,0.25)] transition active:scale-95">
                 Start my dry run ↓
               </a>
             </div>
@@ -422,7 +423,7 @@ export default async function Home({ searchParams }: Props) {
         <h2 className="mb-4 text-2xl font-semibold tracking-tight">Straight answers</h2>
         <div className="space-y-2">
           {FAQ.map(([qq, a]) => (
-            <details key={qq} className="group rounded-2xl border border-line bg-panel/70 p-4">
+            <details data-focus key={qq} className="group rounded-2xl border border-line bg-panel/70 p-4">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-medium">
                 {qq} <span className="text-lime transition group-open:rotate-45">+</span>
               </summary>
@@ -432,12 +433,13 @@ export default async function Home({ searchParams }: Props) {
         </div>
       </section>
 
-      <section className="mt-12 rounded-[2rem] border border-line bg-gradient-to-br from-panel to-[#17142e] p-6 text-center sm:p-10">
+      <section data-focus className="mt-12 rounded-[2rem] border border-line bg-gradient-to-br from-panel to-[#17142e] p-6 text-center sm:p-10">
         <div className="text-2xl font-semibold tracking-tight sm:text-3xl">Rehearsed enough?</div>
         <p className="mt-2 text-sm text-mute">Settings lock the moment you launch. Make them count.</p>
         <LaunchForReal className="mt-5 w-full sm:w-auto" />
       </section>
 
+      <FocusFx key={`fx-${runKey}-${ran}`} />
       <footer className="mt-12 border-t border-line pt-6 text-xs leading-relaxed text-mute">
         <div className="mb-3 flex items-center justify-between">
           {/* eslint-disable-next-line @next/next/no-img-element */}

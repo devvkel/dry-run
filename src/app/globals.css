@@ -27,3 +27,65 @@ body {
   color: #07080c;
   border-color: #c6ff3d;
 }
+
+/* ---- Scroll focus + reveal (see components/FocusFx.tsx) ---------------- */
+html,
+body {
+  overflow-x: clip;
+}
+
+html.fx [data-focus] {
+  opacity: 0.75;
+  transform: translateY(0) scale(1);
+  transition:
+    opacity 350ms ease,
+    transform 380ms cubic-bezier(0.2, 0.7, 0.2, 1),
+    box-shadow 380ms ease,
+    border-color 380ms ease;
+  will-change: transform, opacity;
+}
+
+html.fx [data-focus][data-active] {
+  opacity: 1;
+  transform: translateY(-2px) scale(1.02);
+  border-color: rgba(198, 255, 61, 0.55);
+  box-shadow:
+    0 0 0 1px rgba(198, 255, 61, 0.35),
+    0 18px 40px -18px rgba(0, 0, 0, 0.8),
+    0 0 36px -8px rgba(198, 255, 61, 0.28);
+  position: relative;
+  z-index: 1;
+}
+
+/* Fade / slide up the first time a block scrolls in. */
+html.fx [data-focus]:not([data-seen]) {
+  opacity: 0;
+  transform: translateY(22px) scale(0.99);
+}
+
+/* Press feedback on every button and CTA. */
+button,
+.press {
+  transition-property: transform, background-color, border-color, color, opacity, filter;
+  transition-duration: 150ms;
+}
+button:active:not(:disabled),
+.press:active {
+  transform: scale(0.97);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.fx [data-focus],
+  html.fx [data-focus][data-active],
+  html.fx [data-focus]:not([data-seen]) {
+    transform: none;
+    transition: opacity 200ms linear, box-shadow 200ms linear, border-color 200ms linear;
+  }
+  html.fx [data-focus]:not([data-seen]) {
+    opacity: 0.75;
+  }
+  button:active:not(:disabled),
+  .press:active {
+    transform: none;
+  }
+}
