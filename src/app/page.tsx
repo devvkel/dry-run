@@ -4,14 +4,14 @@ import Builder from "@/components/Builder";
 import Reveal from "@/components/Reveal";
 import ShareBar from "@/components/ShareBar";
 import { LOGO_LOCKUP } from "@/lib/brand";
-import { fmtHours, globalStats, headline, pairLabel, runDryRun } from "@/lib/dryrun";
-import { VIBEVIBE_SITE, VIBEVIBE_X, parsePersona, parseQuery, queryString, setupChips, type SP } from "@/lib/options";
+import { BEST_MIN, bestForPair, fmtHours, globalStats, headline, pairLabel, runDryRun, setupRankings, type SetupStat } from "@/lib/dryrun";
+import { BUYS, VIBEVIBE_SITE, VIBEVIBE_X, labelOf, parsePersona, parseQuery, queryString, setupChips, type SP } from "@/lib/options";
 import { siteUrl } from "@/lib/site";
 
 type Props = { searchParams: Promise<SP> };
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
-const hasRun = (sp: SP) => typeof sp.pair === "string";
+const hasRun = (sp: SP) => typeof sp.pair === "string" && !sp.pre;
 
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
   const sp = await searchParams;
@@ -45,6 +45,27 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
       <div className="mt-1 text-xl font-semibold tabular-nums sm:text-2xl">{value}</div>
       {sub && <div className="mt-0.5 text-[11px] leading-snug text-mute">{sub}</div>}
     </div>
+  );
+}
+
+const setupName = (x: SetupStat) => `${pairLabel(x.pair)} · ${x.buy === "none" ? "no buy" : `${labelOf(BUYS, x.buy)} buy`} · ${x.tax}% tax`;
+const setupHref = (x: SetupStat, extra = "") => `/?${new URLSearchParams({ pair: x.pair, buy: x.buy, tax: x.tax })}${extra}`;
+
+function SetupRow({ x, rank, badge }: { x: SetupStat; rank: number; badge: string }) {
+  return (
+    <Link href={setupHref(x, "&pre=1#build")} className="flex items-center gap-3 rounded-2xl border border-line bg-panel/80 p-3.5 transition hover:border-lime/50 active:scale-[0.99]">
+      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/[0.06] text-xs font-bold text-mute">{rank}</span>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-semibold">{setupName(x)}</div>
+        <div className="text-[11px] text-mute">
+          {x.n.toLocaleString("en-US")} launches · {badge}
+        </div>
+      </div>
+      <div className="text-right">
+        <div className={`text-lg font-bold tabular-nums ${x.rate >= 0.5 ? "text-lime" : x.rate >= 0.3 ? "text-amber-300" : "text-rose-400"}`}>{pct(x.rate)}</div>
+        <div className="text-[10px] text-mute">graduated</div>
+      </div>
+    </Link>
   );
 }
 
@@ -90,7 +111,11 @@ export default async function Home({ searchParams }: Props) {
     : `I dry-ran ${subject} on @${VIBEVIBE_X}: I'm ${article} ${P.title} ${P.emoji}. Nobody's tried my setup yet. Dry run yours 👇`;
   const best = [...r.tweaks].filter((t) => t.n >= 25).sort((a, b) => b.rate - a.rate)[0];
   const rate = Math.round(r.stats.rate * 100);
-  const tone = r.stats.rate >= 0.5 ? "text-lime" : r.stats.rate >= 0.3 ? "text-amber-300" : "text-rose-400";
+  const tone = r.lowSample ? "text-mute" : r.stats.rate >= 0.5 ? "text-lime" : r.stats.rate >= 0.3 ? "text-amber-300" : "text-rose-400";
+  const rankings = setupRankings();
+  const top = bestForPair(r.query.pair);
+  const sameAsTop = !!top && top.buy === r.query.buy && top.tax === r.query.tax;
+  const persona = queryString(q, who).split("&").filter((kv) => /^(name|ticker|x)=/.test(kv)).join("&");
 
   const result = ran && (
     <section id="result" className="scroll-mt-4">
@@ -126,7 +151,7 @@ export default async function Home({ searchParams }: Props) {
 
         <div className="mt-5 flex items-end gap-3">
           <div className="text-[5.5rem] font-bold leading-none tracking-tighter sm:text-[8rem]">
-            <Reveal pct={rate} tone={tone} celebrate={r.stats.rate >= 0.45} runKey={runKey} />
+            <Reveal pct={rate} tone={tone} celebrate={!r.lowSample && r.stats.rate >= 0.45} runKey={runKey} />
           </div>
           <div className="pb-3 text-sm text-mute">
             of launches
@@ -134,6 +159,11 @@ export default async function Home({ searchParams }: Props) {
             like yours graduated
           </div>
         </div>
+        {r.lowSample && r.stats.n > 0 && (
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-amber-300/50 bg-amber-300/10 px-3 py-1 text-xs font-semibold text-amber-200">
+            ⚠️ Small sample: {r.stats.n} launches
+          </div>
+        )}
         <p className="mt-3 text-lg font-medium leading-snug sm:text-2xl">{h.line}</p>
         {r.stats.n > 0 && (
           <p className="mt-1.5 text-sm text-mute">
@@ -183,6 +213,47 @@ export default async function Home({ searchParams }: Props) {
         <div className="text-sm text-mute">Liked your dry run?</div>
         <LaunchForReal className="mt-3 w-full sm:w-auto" />
       </div>
+
+      {top && (
+        <div className="mt-4 rounded-3xl border border-line bg-panel/80 p-5 sm:p-7">
+          <h3 className="font-semibold">Compare · best {pairLabel(r.query.pair)} setup</h3>
+          <p className="mt-1 text-xs text-mute">Highest graduation rate for this pair among setups with {BEST_MIN}+ real launches (pair + opening buy + tax).</p>
+          {sameAsTop ? (
+            <p className="mt-4 rounded-2xl border border-lime/30 bg-lime/[0.06] p-4 text-sm">🏆 You&apos;re already on the top setup for this pair.</p>
+          ) : (
+            <>
+              <div className="mt-4 grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-2 text-sm">
+                <div />
+                <div className="rounded-xl bg-white/[0.04] px-3 py-2 text-center text-xs font-semibold text-mute">Yours</div>
+                <div className="rounded-xl bg-lime/10 px-3 py-2 text-center text-xs font-semibold text-lime">Best</div>
+                <div className="self-center text-xs text-mute">Setup</div>
+                <div className="text-center text-xs">{setupChips(r.query).slice(1).join(" · ") || "Any"}</div>
+                <div className="text-center text-xs">{setupName(top).split(" · ").slice(1).join(" · ")}</div>
+                {(
+                  [
+                    ["Graduated", pct(r.stats.rate), pct(top.rate)],
+                    ["Median time", fmtHours(r.stats.medianHours), fmtHours(top.medianHours)],
+                    ["Holders", r.stats.medianHoldersGrad ? Math.round(r.stats.medianHoldersGrad).toLocaleString("en-US") : "—", top.medianHolders ? Math.round(top.medianHolders).toLocaleString("en-US") : "—"],
+                    ["Launches", r.stats.n.toLocaleString("en-US"), top.n.toLocaleString("en-US")],
+                  ] as const
+                ).map(([k, a, b]) => (
+                  <div key={k} className="contents">
+                    <div className="self-center text-xs text-mute">{k}</div>
+                    <div className="text-center text-lg font-semibold tabular-nums">{a}</div>
+                    <div className="text-center text-lg font-semibold tabular-nums text-lime">{b}</div>
+                  </div>
+                ))}
+              </div>
+              <Link
+                href={`${setupHref(top)}${persona ? `&${persona}` : ""}#result`}
+                className="mt-5 flex w-full items-center justify-center rounded-full bg-lime px-5 py-3 text-sm font-bold text-ink transition active:scale-95"
+              >
+                Try that setup →
+              </Link>
+            </>
+          )}
+        </div>
+      )}
 
       {r.tweaks.length > 1 && (
         <div className="mt-4 rounded-3xl border border-line bg-panel/80 p-5 sm:p-7">
@@ -312,6 +383,32 @@ export default async function Home({ searchParams }: Props) {
       {result}
 
       {!ran && <div className="mb-10">{how}</div>}
+
+      {!ran && (
+        <section className="mb-10">
+          <h2 className="text-2xl font-semibold tracking-tight">What real vibe/vibe creators launched</h2>
+          <p className="mb-4 mt-1 text-sm text-mute">From the official API, not made up. Tap one to load it into the builder.</p>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-mute">🔥 Most popular setups</div>
+              <div className="space-y-2">
+                {rankings.popular.map((x, i) => (
+                  <SetupRow key={`p${i}`} x={x} rank={i + 1} badge="most launched" />
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-mute">🏆 Best performing (min {BEST_MIN} launches)</div>
+              <div className="space-y-2">
+                {rankings.best.map((x, i) => (
+                  <SetupRow key={`b${i}`} x={x} rank={i + 1} badge={`median ${fmtHours(x.medianHours)}`} />
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] text-mute">Launches 3+ days old. Past results, not a guarantee.</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section id="build" className={`scroll-mt-4 ${ran ? "mt-12" : ""}`}>
         <h2 className="mb-1 text-2xl font-semibold tracking-tight sm:text-3xl">{ran ? "Try another setup" : "Your pretend launch"}</h2>

@@ -86,7 +86,7 @@ export const cleanTicker = (s: unknown) =>
     .slice(0, 10);
 
 export function parsePersona(sp: SP): Persona {
-  return { name: cleanName(one(sp, "name")), ticker: cleanTicker(one(sp, "ticker")), handle: cleanHandle(one(sp, "x")) };
+  return { name: cleanName(one(sp, "name")), ticker: cleanTicker(one(sp, "ticker")), handle: cleanHandle(one(sp, "x") ?? one(sp, "handle")) };
 }
 
 export function queryString(q: Query, p?: Partial<Persona>): string {

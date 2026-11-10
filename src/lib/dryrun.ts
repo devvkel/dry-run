@@ -28,6 +28,7 @@ type Row = [
 ];
 
 const ROWS = dataset.rows as Row[];
+export const SMALL_SAMPLE = 25;
 export const DATASET_META = {
   builtAt: dataset.builtAt,
   count: ROWS.length,
@@ -40,7 +41,7 @@ export const EXPLORER = "https://explorer.testnet.chain.robinhood.com";
 
 /** Launches younger than this are left out of rates so they've had time to graduate. */
 const MATURE_SECONDS = 3 * 86400;
-const MIN_SAMPLE = 25;
+const MIN_SAMPLE = 25; // keep in sync with SMALL_SAMPLE
 
 import { BUYS, PAIRS, labelOf, setupChips, type Query } from "./options";
 import { personalityFor } from "./personality";
@@ -221,4 +222,43 @@ export const pairLabel = (k: string) => labelOf(PAIRS, k);
 export function globalStats() {
   const s = statsFor(ROWS);
   return { launches: ROWS.length, graduated: ROWS.filter((r) => r[6] > 0).length, rate: s.rate, medianHours: s.medianHours };
+}
+
+// ---- Real-data setup rankings (pair + opening buy + tax) ------------------
+export type SetupStat = { pair: string; buy: string; tax: string; n: number; rate: number; medianHours: number; medianHolders: number };
+export const BEST_MIN = 50;
+
+function buyKey(b: number) {
+  return Object.keys(BUY_TEST).find((k) => BUY_TEST[k](b)) ?? "none";
+}
+
+let SETUPS: SetupStat[] | null = null;
+function allSetups(): SetupStat[] {
+  if (SETUPS) return SETUPS;
+  const groups = new Map<string, Row[]>();
+  for (const r of ROWS) {
+    const k = `${r[3]}|${buyKey(r[7])}|${r[8] / 100}`;
+    let g = groups.get(k);
+    if (!g) groups.set(k, (g = []));
+    g.push(r);
+  }
+  SETUPS = [...groups.entries()].map(([k, rows]) => {
+    const [pair, buy, tax] = k.split("|");
+    const st = statsFor(rows);
+    return { pair, buy, tax, n: st.n, rate: st.rate, medianHours: st.medianHours, medianHolders: st.medianHoldersGrad };
+  });
+  return SETUPS;
+}
+
+/** Most common real setups, and the best graduation rates with a decent sample. */
+export function setupRankings() {
+  const all = allSetups();
+  const popular = [...all].sort((a, b) => b.n - a.n).slice(0, 6);
+  const best = all.filter((s) => s.n >= BEST_MIN).sort((a, b) => b.rate - a.rate).slice(0, 5);
+  return { popular, best };
+}
+
+/** Best-performing setup for one pair (min sample), for the Compare view. */
+export function bestForPair(pair: string): SetupStat | null {
+  return allSetups().filter((s) => s.pair === pair && s.n >= BEST_MIN).sort((a, b) => b.rate - a.rate)[0] ?? null;
 }

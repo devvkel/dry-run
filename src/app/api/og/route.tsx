@@ -72,7 +72,8 @@ export async function GET(req: Request) {
   const P = r.personality;
   const av = await avatar(who.handle);
   const rate = Math.round(r.stats.rate * 100);
-  const tone = r.stats.rate >= 0.5 ? LIME : r.stats.rate >= 0.3 ? "#fcd34d" : "#fb7185";
+  const small = r.lowSample && r.stats.n > 0;
+  const tone = small ? "#9aa0b4" : r.stats.rate >= 0.5 ? LIME : r.stats.rate >= 0.3 ? "#fcd34d" : "#fb7185";
   const initial = (who.handle || who.name || "D")[0].toUpperCase();
   const title = who.name || (who.ticker ? `$${who.ticker}` : "My pretend launch");
 
@@ -106,6 +107,11 @@ export async function GET(req: Request) {
               {c}
             </div>
           ))}
+          {small && (
+            <div style={{ display: "flex", fontSize: 20, fontWeight: 700, color: "#fde68a", border: "2px solid #fcd34d", background: "rgba(252,211,77,0.12)", borderRadius: 999, padding: "5px 16px" }}>
+              {`⚠️ Small sample: ${r.stats.n} launches`}
+            </div>
+          )}
         </div>
 
         {/* middle: big % + personality */}
