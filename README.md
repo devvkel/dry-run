@@ -13,6 +13,19 @@ On [vibe/vibe](https://testnet.vibevibe.fun) (Robinhood Chain testnet), the pair
 - **Real example launches**, linked to their vibe/vibe pages
 - **Shareable result**: every result has its own URL, an Open Graph / X card image, a *Share on X* button and *Download card* (PNG)
 
+## v2: guided flow + personal cards
+
+- **Landing**: a hero ("Rehearse your launch before it's real"), live dataset stats, and 3 steps showing how it works.
+- **Pretend-launch builder** (6 steps): token name, $TICKER, pair, opening buy, tax and routing, airdrop, and an optional X handle. Then **Dry Run it →** reveals the result with a count-up and light confetti on good outcomes.
+- **Launch personality**: a fun title picked deterministically from your setup and result (see `src/lib/personality.ts`).
+- **Personal share card** (`/api/og`): avatar (via unavatar.io, with an initial as fallback), @handle, token name/$TICKER, setup chips, big %, personality, logo and site URL. Handle, name and ticker are part of the share URL (`x`, `name`, `ticker`), so the X preview shows *your* card. Inputs are sanitized: handle `[A-Za-z0-9_]` up to 15 characters, name up to 24 Latin characters, ticker `A-Z0-9` up to 10.
+- **Share on X** tags the official [@vibevibefun](https://x.com/vibevibefun) account. A **Ready for real? Launch on vibe/vibe** button sits under every result.
+- **FAQ / honesty** section: what's rehearsal vs. real, where the data comes from, and why it's not a guarantee.
+
+### Logo
+
+There are 4 concepts in `brand/` (and `public/brand/`), plus a side-by-side sheet at `logo-options.png`. Regenerate them with `node scripts/build-logos.mjs`. The live one is set in `src/lib/brand.ts` (`LOGO_OPTION`). To swap, change that number and run `cp public/brand/logo-N-mark.svg src/app/icon.svg`.
+
 ## How it works
 
 1. `scripts/build-dataset.mts` pages through every V6 launch on the official vibe/vibe API and writes a compact cache to `data/launches.json` (about 24k launches, ~3 MB).
@@ -27,7 +40,7 @@ On [vibe/vibe](https://testnet.vibevibe.fun) (Robinhood Chain testnet), the pair
 
 | Route | What |
 | --- | --- |
-| `/?pair=eth&buy=1-3&tax=2&route=holders&airdrop=no` | The tool. The URL *is* the result, so it can be shared. |
+| `/?pair=eth&buy=1-3&tax=2&route=holders&airdrop=no&name=Moon%20Cat&ticker=MCAT&x=handle` | The tool. The URL *is* the result, so it can be shared. Without `pair` you get the landing page. |
 | `/api/og?…same params…` | 1200×630 PNG share card (used for `og:image` / `twitter:image` and *Download card*) |
 | `/api/stats?…same params…` | The same result as JSON |
 

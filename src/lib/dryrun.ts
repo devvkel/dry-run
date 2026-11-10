@@ -42,80 +42,25 @@ export const EXPLORER = "https://explorer.testnet.chain.robinhood.com";
 const MATURE_SECONDS = 3 * 86400;
 const MIN_SAMPLE = 25;
 
-export const PAIRS = [
-  { key: "eth", label: "ETH", hint: "native" },
-  { key: "nvda", label: "NVDA", hint: "test stock" },
-  { key: "spcx", label: "SPCX", hint: "test stock" },
-  { key: "aapl", label: "AAPL", hint: "test stock" },
-  { key: "openai", label: "OPENAI", hint: "test pre-IPO" },
-  { key: "anthropic", label: "ANTHROPIC", hint: "test pre-IPO" },
-  { key: "usdg", label: "USDG", hint: "test dollar" },
-  { key: "vibevibe", label: "VIBEVIBE", hint: "token" },
-  { key: "launch", label: "Another launch", hint: "vibe/vibe token" },
-] as const;
+import { BUYS, PAIRS, labelOf, setupChips, type Query } from "./options";
+import { personalityFor } from "./personality";
+export { parseQuery, queryString, setupChips } from "./options";
+export type { Query } from "./options";
 
-export const BUYS = [
-  { key: "none", label: "No opening buy", test: (b: number) => b === 0 },
-  { key: "lt1", label: "Under 1%", test: (b: number) => b > 0 && b < 100 },
-  { key: "1-3", label: "1–3%", test: (b: number) => b >= 100 && b < 300 },
-  { key: "3-10", label: "3–10%", test: (b: number) => b >= 300 && b < 1000 },
-  { key: "10-25", label: "10–25%", test: (b: number) => b >= 1000 && b < 2500 },
-  { key: "25+", label: "25%+", test: (b: number) => b >= 2500 },
-] as const;
-
-export const TAXES = [
-  { key: "any", label: "Any tax" },
-  { key: "1", label: "1%" },
-  { key: "2", label: "2%" },
-  { key: "3", label: "3%" },
-] as const;
-
-export const ROUTES = [
-  { key: "any", label: "Any routing" },
-  { key: "treasury", label: "Mostly treasury" },
-  { key: "holders", label: "Mostly holders" },
-  { key: "burn", label: "Mostly burn" },
-] as const;
-
-export const AIRDROPS = [
-  { key: "any", label: "Either" },
-  { key: "yes", label: "With airdrop" },
-  { key: "no", label: "No airdrop" },
-] as const;
-
-export type Query = { pair: string; buy: string; tax: string; route: string; airdrop: string };
-export const DEFAULT_QUERY: Query = { pair: "eth", buy: "1-3", tax: "any", route: "any", airdrop: "any" };
-
-const pick = <T extends readonly { key: string }[]>(list: T, v: unknown, d: string) =>
-  typeof v === "string" && list.some((o) => o.key === v) ? v : d;
-
-export function parseQuery(sp: Record<string, string | string[] | undefined>): Query {
-  const one = (k: string) => (Array.isArray(sp[k]) ? sp[k]![0] : sp[k]);
-  return {
-    pair: pick(PAIRS, one("pair"), DEFAULT_QUERY.pair),
-    buy: pick(BUYS, one("buy"), DEFAULT_QUERY.buy),
-    tax: pick(TAXES, one("tax"), DEFAULT_QUERY.tax),
-    route: pick(ROUTES, one("route"), DEFAULT_QUERY.route),
-    airdrop: pick(AIRDROPS, one("airdrop"), DEFAULT_QUERY.airdrop),
-  };
-}
-
-export function queryString(q: Query): string {
-  const p = new URLSearchParams({ pair: q.pair, buy: q.buy });
-  if (q.tax !== "any") p.set("tax", q.tax);
-  if (q.route !== "any") p.set("route", q.route);
-  if (q.airdrop !== "any") p.set("airdrop", q.airdrop);
-  return p.toString();
-}
-
-export const labelOf = (list: readonly { key: string; label: string }[], key: string) =>
-  list.find((o) => o.key === key)?.label ?? key;
+const BUY_TEST: Record<string, (b: number) => boolean> = {
+  none: (b) => b === 0,
+  lt1: (b) => b > 0 && b < 100,
+  "1-3": (b) => b >= 100 && b < 300,
+  "3-10": (b) => b >= 300 && b < 1000,
+  "10-25": (b) => b >= 1000 && b < 2500,
+  "25+": (b) => b >= 2500,
+};
 
 function matcher(q: Query) {
-  const buy = BUYS.find((b) => b.key === q.buy)!;
+  const buy = BUY_TEST[q.buy];
   return (r: Row) =>
     r[3] === q.pair &&
-    buy.test(r[7]) &&
+    buy(r[7]) &&
     (q.tax === "any" || r[8] === Number(q.tax) * 100) &&
     (q.route === "any" || r[9] === q.route) &&
     (q.airdrop === "any" || r[10] === (q.airdrop === "yes" ? 1 : 0));
@@ -211,9 +156,9 @@ export function runDryRun(input: Query) {
   const tweaks = BUYS.map((b) => {
     const st = statsFor(ROWS.filter(matcher({ ...q, buy: b.key })));
     return { key: b.key, label: b.label, rate: st.rate, n: st.n, medianHours: st.medianHours };
-  }).filter((t) => t.n >= MIN_SAMPLE);
+  }).filter((t) => t.n >= MIN_SAMPLE || (t.key === q.buy && t.n > 0));
 
-  const taxTweaks = TAXES.filter((t) => t.key !== "any").map((t) => {
+  const taxTweaks = (["1", "2", "3"] as const).map((key) => ({ key, label: `${key}%` })).map((t) => {
     const st = statsFor(ROWS.filter(matcher({ ...q, tax: t.key })));
     return { key: t.key, label: t.label, rate: st.rate, n: st.n };
   }).filter((t) => t.n >= MIN_SAMPLE);
@@ -242,6 +187,7 @@ export function runDryRun(input: Query) {
     examples,
     meta: DATASET_META,
     lowSample: s.n < MIN_SAMPLE,
+    personality: personalityFor(input, s),
   };
 }
 
@@ -266,9 +212,13 @@ export function headline(r: Result) {
 }
 
 export function setupLabel(q: Query) {
-  const parts = [`${labelOf(PAIRS, q.pair)} pair`, q.buy === "none" ? "no opening buy" : `${labelOf(BUYS, q.buy)} opening buy`];
-  if (q.tax !== "any") parts.push(`${q.tax}% tax`);
-  if (q.route !== "any") parts.push(labelOf(ROUTES, q.route).toLowerCase());
-  if (q.airdrop !== "any") parts.push(q.airdrop === "yes" ? "airdrop" : "no airdrop");
-  return parts.join(" · ");
+  return setupChips(q).join(" · ");
+}
+
+export const pairLabel = (k: string) => labelOf(PAIRS, k);
+
+/** Whole-dataset numbers for the landing page. */
+export function globalStats() {
+  const s = statsFor(ROWS);
+  return { launches: ROWS.length, graduated: ROWS.filter((r) => r[6] > 0).length, rate: s.rate, medianHours: s.medianHours };
 }
