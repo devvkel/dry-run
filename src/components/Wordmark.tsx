@@ -7,11 +7,28 @@
 export function BigD({ animated = false, className = "" }: { animated?: boolean; className?: string }) {
   return (
     <svg viewBox="0 0 100 120" aria-hidden="true" className={`h-[1em] w-[0.8333em] shrink-0 overflow-visible ${className}`}>
+      <defs>
+        <linearGradient id="dr-d-body" x1="0" y1="0" x2="0.9" y2="1">
+          <stop offset="0" stopColor="#e2ff8a" />
+          <stop offset="0.45" stopColor="#c6ff3d" />
+          <stop offset="1" stopColor="#8fd10f" />
+        </linearGradient>
+        <radialGradient id="dr-d-counter" cx="0.55" cy="0.4" r="0.75">
+          <stop offset="0" stopColor="#c6ff3d" stopOpacity="0.16" />
+          <stop offset="1" stopColor="#c6ff3d" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      {/* Custom-cut D: chamfered top-left (the curve's climb), a concave launch-pad
+          bite at the stem foot, and a squared counter with a rounded bowl echoing the logo tile. */}
       <path
         fillRule="evenodd"
-        fill="#c6ff3d"
-        d="M0 6 Q0 0 6 0 H46 C80 0 100 25 100 60 C100 95 80 120 46 120 H6 Q0 120 0 114 Z M25 23 V97 H45 C64 97 75 83 75 60 C75 37 64 23 45 23 Z"
+        fill="url(#dr-d-body)"
+        d="M15 0 H48 C81 0 100 25 100 60 C100 95 81 120 48 120 H12 A12 12 0 0 0 0 108 V15 Z M30 23 H59 Q75 23 75 39 V81 Q75 97 59 97 H30 Q25 97 25 92 V28 Q25 23 30 23 Z"
       />
+      {/* soft lime light inside the counter + an inner rim */}
+      <path d="M30 23 H59 Q75 23 75 39 V81 Q75 97 59 97 H30 Q25 97 25 92 V28 Q25 23 30 23 Z" fill="url(#dr-d-counter)" stroke="#07080c" strokeOpacity="0.35" strokeWidth="1.5" />
+      {/* top-edge highlight */}
+      <path d="M16.5 2.2 H48 C66 2.2 80 9 89 20" fill="none" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1.4" strokeLinecap="round" />
       <path
         d="M33 87 C 46 87, 50 47, 62 41"
         fill="none"

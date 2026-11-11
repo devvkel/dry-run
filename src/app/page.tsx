@@ -350,7 +350,7 @@ export default async function Home({ searchParams }: Props) {
   return (
     <main className="relative mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8 lg:max-w-5xl">
       {!ran && <HeroCurve />}
-      <SiteHeader active="rehearse" showMark={ran} nav={ran} />
+      <SiteHeader active="rehearse" nav={ran} />
 
       {ran ? (
         <section className="mb-6">
@@ -362,11 +362,11 @@ export default async function Home({ searchParams }: Props) {
         </section>
       ) : (
         <>
-          <section className="mb-10 flex flex-col items-center pt-6 text-center sm:pt-14">
+          <section className="mb-10 flex flex-col items-center pt-1 text-center sm:pt-10">
             <h1 className="dr-rise">
-              <Wordmark animated className="text-[104px] sm:text-[150px]" />
+              <Wordmark animated className="text-[76px] sm:text-[110px]" />
             </h1>
-            <p className="dr-rise dr-rise-1 mt-7 text-[1.65rem] font-semibold leading-[1.1] tracking-tight sm:mt-9 sm:text-5xl">
+            <p className="dr-rise dr-rise-1 mt-5 text-[1.65rem] font-semibold leading-[1.1] tracking-tight sm:mt-7 sm:text-5xl">
               Rehearse your launch
               <br />
               <span className="dr-text-glow text-lime">before it&apos;s real.</span>
@@ -374,7 +374,7 @@ export default async function Home({ searchParams }: Props) {
             <p className="dr-rise dr-rise-2 mt-4 max-w-md text-[15px] leading-relaxed text-mute sm:max-w-xl sm:text-lg">
               On vibe/vibe, your launch settings lock forever. Try them first against {g.launches.toLocaleString("en-US")} real launches, then grab a card to brag about.
             </p>
-            <div className="dr-rise dr-rise-3 mt-7 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+            <div className="dr-rise dr-rise-3 mt-6 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
               <a href="#build" className="press w-full rounded-full bg-lime px-7 py-4 text-center text-base font-bold text-ink shadow-[0_0_48px_-6px_rgba(198,255,61,0.55)] transition hover:shadow-[0_0_64px_-4px_rgba(198,255,61,0.7)] active:scale-95 sm:w-auto">
                 Start my dry run ↓
               </a>
