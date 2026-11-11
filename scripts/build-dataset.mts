@@ -46,15 +46,22 @@ type V6Launch = {
   market: { volume24hPairUnits: string | null; holderCount: number | null } | null;
 };
 
-async function getJson(url: string, tries = 4): Promise<{ data: { items: V6Launch[]; page: { hasMore: boolean; nextCursor?: string; snapshotBlock?: string } } }> {
+async function getJson(url: string, tries = 10): Promise<{ data: { items: V6Launch[]; page: { hasMore: boolean; nextCursor?: string; snapshotBlock?: string } } }> {
   for (let i = 0; ; i++) {
+    let wait = 1500 * (i + 1);
     try {
       const r = await fetch(url, { headers: { "user-agent": "dry-run-dataset/1.0" } });
+      if (r.status === 429) {
+        // Rate limited: honour Retry-After if given, else back off harder.
+        const ra = Number(r.headers.get("retry-after"));
+        wait = Number.isFinite(ra) && ra > 0 ? ra * 1000 : Math.min(60_000, 5000 * 2 ** i);
+        throw new Error(`HTTP 429 for ${url}`);
+      }
       if (!r.ok) throw new Error(`HTTP ${r.status} for ${url}`);
       return await r.json();
     } catch (e) {
       if (i >= tries - 1) throw e;
-      await new Promise((res) => setTimeout(res, 1500 * (i + 1)));
+      await new Promise((res) => setTimeout(res, wait));
     }
   }
 }
@@ -83,6 +90,7 @@ async function main() {
     if (all.length % 2000 < PAGE) process.stdout.write(`  ${all.length} launches...\n`);
     if (!data.page.hasMore || !data.page.nextCursor) break;
     cursor = data.page.nextCursor;
+    await new Promise((res) => setTimeout(res, 250)); // be gentle with the public API
   }
 
   // Columnar-ish compact rows keep the file small.
