@@ -262,3 +262,37 @@ export function setupRankings() {
 export function bestForPair(pair: string): SetupStat | null {
   return allSetups().filter((s) => s.pair === pair && s.n >= BEST_MIN).sort((a, b) => b.rate - a.rate)[0] ?? null;
 }
+
+// ---- Added for /check and /guess (read-only helpers over the same dataset) --
+
+/** Opening-buy bucket key ("none", "lt1", "1-3", …) for a buy size in bps of supply. */
+export const buyBucket = (bps: number) => buyKey(bps);
+
+/** The compact dataset row for one token, if it's in the snapshot. */
+export function findRow(token: string): Row | null {
+  const t = token.toLowerCase();
+  return ROWS.find((r) => r[0] === t) ?? null;
+}
+
+/**
+ * Where a pair + opening buy + tax setup ranks by graduation rate among all
+ * real setups with BEST_MIN+ launches. Null if this setup is below that sample.
+ */
+export function setupRank(pair: string, buy: string, tax: string) {
+  const ranked = allSetups().filter((s) => s.n >= BEST_MIN).sort((a, b) => b.rate - a.rate);
+  const i = ranked.findIndex((s) => s.pair === pair && s.buy === buy && s.tax === tax);
+  const self = allSetups().find((s) => s.pair === pair && s.buy === buy && s.tax === tax) ?? null;
+  return { rank: i >= 0 ? i + 1 : null, total: ranked.length, setup: self };
+}
+
+/** Mature launches (3+ days old at snapshot) split by outcome, for the guessing game. */
+let POOL: { grads: Row[]; rest: Row[] } | null = null;
+export function guessPool() {
+  if (POOL) return POOL;
+  const now = nowSec();
+  const mature = ROWS.filter((r) => now - r[5] >= MATURE_SECONDS);
+  POOL = { grads: mature.filter((r) => r[6] > 0), rest: mature.filter((r) => r[6] === 0) };
+  return POOL;
+}
+
+export type DatasetRow = Row;

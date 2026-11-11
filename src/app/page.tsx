@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Builder from "@/components/Builder";
 import FocusFx from "@/components/FocusFx";
+import NavLinks from "@/components/NavLinks";
 import Reveal from "@/components/Reveal";
 import ShareBar from "@/components/ShareBar";
 import { LOGO_LOCKUP } from "@/lib/brand";
@@ -340,9 +341,12 @@ export default async function Home({ searchParams }: Props) {
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={LOGO_LOCKUP} alt="Dry Run" className="h-8 w-auto sm:h-9" />
         </Link>
-        <a href={VIBEVIBE_SITE} target="_blank" rel="noopener noreferrer" className="rounded-full border border-line px-3 py-1.5 text-xs text-mute transition hover:border-lime/60 hover:text-white">
-          vibe/vibe ↗
-        </a>
+        <nav className="flex items-center gap-1.5 sm:gap-2">
+          <NavLinks />
+          <a href={VIBEVIBE_SITE} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap rounded-full border border-line px-3 py-1.5 text-xs text-mute transition hover:border-lime/60 hover:text-white">
+            vibe/vibe ↗
+          </a>
+        </nav>
       </header>
 
       <section data-focus className={`rounded-[2rem] border border-transparent ${ran ? "mb-6" : "-mx-2 mb-10 px-2 pt-4 sm:pt-10"}`}>
