@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import DataBadge from "@/components/DataBadge";
 import FocusFx from "@/components/FocusFx";
+import HeroCurve from "@/components/HeroCurve";
 import Reveal from "@/components/Reveal";
 import ShareBar from "@/components/ShareBar";
 import SiteFooter from "@/components/SiteFooter";
@@ -217,16 +219,15 @@ export default async function CheckPage({ searchParams }: Props) {
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8">
+    <main className="relative mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8">
+      <HeroCurve />
       <SiteHeader active="check" />
       <section>
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-3 py-1 text-[11px] text-mute">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-lime" /> Data updated {updatedLabel()}
-        </div>
+        <DataBadge className="mb-5" />
         <h1 className="text-[2.4rem] font-semibold leading-[1.02] tracking-tight sm:text-6xl">
           Check a token.
           <br />
-          <span className="text-lime">See how its setup really did.</span>
+          <span className="dr-text-glow text-lime">See how its setup really did.</span>
         </h1>
         <p className="mt-4 max-w-xl text-base text-mute">Paste any vibe/vibe launch. We pull its real settings and stack them against every launch with the same setup.</p>
         <form action="/check" method="get" className="mt-6 flex flex-col gap-2 sm:flex-row">
@@ -236,9 +237,9 @@ export default async function CheckPage({ searchParams }: Props) {
             placeholder="0x… or testnet.vibevibe.fun/token/0x…"
             autoComplete="off"
             spellCheck={false}
-            className="min-w-0 flex-1 rounded-full border border-line bg-panel px-5 py-3.5 font-mono text-sm outline-none transition placeholder:text-mute/70 focus:border-lime/70"
+            className="dr-glass min-w-0 flex-1 rounded-full px-5 py-3.5 font-mono text-sm outline-none transition placeholder:text-mute/70 focus:border-lime/70"
           />
-          <button type="submit" className="rounded-full bg-lime px-6 py-3.5 text-sm font-bold text-ink shadow-[0_0_40px_rgba(198,255,61,0.2)]">
+          <button type="submit" className="press rounded-full bg-lime px-6 py-3.5 text-sm font-bold text-ink shadow-[0_0_40px_-6px_rgba(198,255,61,0.55)] transition hover:shadow-[0_0_56px_-4px_rgba(198,255,61,0.7)]">
             Check it →
           </button>
         </form>

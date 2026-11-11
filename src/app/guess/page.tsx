@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import DataBadge from "@/components/DataBadge";
 import GuessGame from "@/components/GuessGame";
+import HeroCurve from "@/components/HeroCurve";
 import SiteFooter from "@/components/SiteFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { guessPool } from "@/lib/dryrun";
 import type { SP } from "@/lib/options";
 import { siteUrl } from "@/lib/site";
-import { updatedLabel } from "@/lib/token";
 
 type Props = { searchParams: Promise<SP> };
 const int = (v: SP[string], max = 9999) => {
@@ -33,14 +34,13 @@ export default async function GuessPage({ searchParams }: Props) {
   const c = challengeOf(await searchParams);
   const { grads, rest } = guessPool();
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8">
+    <main className="relative mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8">
+      <HeroCurve />
       <SiteHeader active="guess" />
       <section className="mb-6">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-3 py-1 text-[11px] text-mute">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-lime" /> Data updated {updatedLabel()} · {(grads.length + rest.length).toLocaleString("en-US")} launches in play
-        </div>
+        <DataBadge className="mb-5" extra={`${(grads.length + rest.length).toLocaleString("en-US")} launches in play`} />
         <h1 className="text-[2.4rem] font-semibold leading-[1.02] tracking-tight sm:text-6xl">
-          Guess the <span className="text-lime">graduation.</span>
+          Guess the <span className="dr-text-glow text-lime">graduation.</span>
         </h1>
         <p className="mt-4 max-w-xl text-base text-mute">A real vibe/vibe launch, its real settings. Did it fill its curve and graduate? Call it, keep your streak, share your score.</p>
       </section>

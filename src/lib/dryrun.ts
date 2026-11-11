@@ -296,3 +296,33 @@ export function guessPool() {
 }
 
 export type DatasetRow = Row;
+
+// ---- Display-only highlights for the landing page (read-only, no scoring) ----
+export type Highlight = { token: string; name: string; symbol: string; pairLabel: string; graduated: boolean; hours: number; progressPct: number; holders: number };
+const toHighlight = (r: Row): Highlight => ({
+  token: r[0],
+  name: r[1],
+  symbol: r[2],
+  pairLabel: r[4],
+  graduated: r[6] > 0,
+  hours: r[6] > 0 ? (r[6] - r[5]) / 3600 : 0,
+  progressPct: r[6] > 0 ? 100 : r[13] / 100,
+  holders: r[11],
+});
+
+/** The newest launches in the snapshot, newest first. */
+export function latestLaunches(n = 18): Highlight[] {
+  return [...ROWS].sort((a, b) => b[5] - a[5]).slice(0, n).map(toHighlight);
+}
+
+/** Most-held graduate among launches created in the 7 days before the snapshot. */
+export function topRecentGraduate(): Highlight | null {
+  const end = Date.parse(DATASET_META.builtAt) / 1000;
+  const best = ROWS.filter((r) => r[6] > 0 && r[5] >= end - 7 * 86400).sort((a, b) => b[11] - a[11])[0];
+  return best ? toHighlight(best) : null;
+}
+
+/** Most recent graduations in the snapshot, newest first. */
+export function latestGraduates(n = 6): Highlight[] {
+  return ROWS.filter((r) => r[6] > 0).sort((a, b) => b[6] - a[6]).slice(0, n).map(toHighlight);
+}

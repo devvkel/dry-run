@@ -2,11 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Builder from "@/components/Builder";
 import FocusFx from "@/components/FocusFx";
-import NavLinks from "@/components/NavLinks";
+import CountUp from "@/components/CountUp";
+import DataBadge from "@/components/DataBadge";
+import FeatureNav, { FeatureIcon, type Feature } from "@/components/FeatureNav";
+import HeroCurve from "@/components/HeroCurve";
+import LaunchTicker from "@/components/LaunchTicker";
 import Reveal from "@/components/Reveal";
 import ShareBar from "@/components/ShareBar";
-import { LOGO_LOCKUP } from "@/lib/brand";
-import { BEST_MIN, bestForPair, fmtHours, globalStats, headline, pairLabel, runDryRun, setupRankings, type SetupStat } from "@/lib/dryrun";
+import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/SiteHeader";
+import Wordmark from "@/components/Wordmark";
+import { BEST_MIN, bestForPair, fmtHours, globalStats, headline, pairLabel, runDryRun, setupRankings, topRecentGraduate, type SetupStat } from "@/lib/dryrun";
 import { BUYS, VIBEVIBE_SITE, VIBEVIBE_X, labelOf, parsePersona, parseQuery, queryString, setupChips, type SP } from "@/lib/options";
 import { siteUrl } from "@/lib/site";
 
@@ -334,56 +340,115 @@ export default async function Home({ searchParams }: Props) {
     </section>
   );
 
-  return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8 lg:max-w-5xl">
-      <header className="mb-8 flex items-center justify-between gap-3">
-        <Link href="/" aria-label="Dry Run home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO_LOCKUP} alt="Dry Run" className="h-8 w-auto sm:h-9" />
-        </Link>
-        <nav className="flex items-center gap-1.5 sm:gap-2">
-          <NavLinks />
-          <a href={VIBEVIBE_SITE} target="_blank" rel="noopener noreferrer" className="whitespace-nowrap rounded-full border border-line px-3 py-1.5 text-xs text-mute transition hover:border-lime/60 hover:text-white">
-            vibe/vibe ↗
-          </a>
-        </nav>
-      </header>
+  const tg = topRecentGraduate();
+  const features: { f: Feature; href: string; title: string; body: string; cta: string }[] = [
+    { f: "rehearse", href: "#build", title: "Rehearse a launch", body: "Pick your pair, opening buy and tax. See how real launches with that setup did.", cta: "Start a dry run" },
+    { f: "check", href: "/check", title: "Check any token", body: "Paste a live vibe/vibe token. See how its setup ranks against every launch like it.", cta: "Check a token" },
+    { f: "guess", href: "/guess", title: "Guess the graduation", body: "A real launch, its real settings. Did it graduate? Keep your streak, share your score.", cta: "Play now" },
+  ];
 
-      <section data-focus className={`rounded-[2rem] border border-transparent ${ran ? "mb-6" : "-mx-2 mb-10 px-2 pt-4 sm:pt-10"}`}>
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-line bg-white/[0.03] px-3 py-1 text-[11px] text-mute">
-          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-lime" /> Robinhood Chain testnet · {g.launches.toLocaleString("en-US")} real launches
-        </div>
-        <h1 className={`font-semibold leading-[1.02] tracking-tight ${ran ? "text-3xl sm:text-5xl" : "text-[2.75rem] sm:text-7xl"}`}>
-          Rehearse your launch
-          <br />
-          <span className="text-lime">before it&apos;s real.</span>
-        </h1>
-        {!ran && (
-          <>
-            <p className="mt-5 max-w-xl text-base text-mute sm:text-lg">
-              On vibe/vibe, your launch settings lock forever. Dry Run lets you try them first against real past launches, then hands you a card to
-              brag about.
+  return (
+    <main className="relative mx-auto w-full max-w-3xl flex-1 px-4 pb-10 pt-5 sm:px-6 sm:pt-8 lg:max-w-5xl">
+      {!ran && <HeroCurve />}
+      <SiteHeader active="rehearse" showMark={ran} nav={ran} />
+
+      {ran ? (
+        <section className="mb-6">
+          <h1 className="text-3xl font-semibold leading-[1.02] tracking-tight sm:text-5xl">
+            Rehearse your launch
+            <br />
+            <span className="text-lime">before it&apos;s real.</span>
+          </h1>
+        </section>
+      ) : (
+        <>
+          <section className="mb-10 flex flex-col items-center pt-6 text-center sm:pt-14">
+            <h1 className="dr-rise">
+              <Wordmark animated className="text-[104px] sm:text-[150px]" />
+            </h1>
+            <p className="dr-rise dr-rise-1 mt-7 text-[1.65rem] font-semibold leading-[1.1] tracking-tight sm:mt-9 sm:text-5xl">
+              Rehearse your launch
+              <br />
+              <span className="dr-text-glow text-lime">before it&apos;s real.</span>
             </p>
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-              <a href="#build" className="press rounded-full bg-lime px-6 py-4 text-center text-base font-bold text-ink shadow-[0_0_40px_rgba(198,255,61,0.25)] transition active:scale-95">
+            <p className="dr-rise dr-rise-2 mt-4 max-w-md text-[15px] leading-relaxed text-mute sm:max-w-xl sm:text-lg">
+              On vibe/vibe, your launch settings lock forever. Try them first against {g.launches.toLocaleString("en-US")} real launches, then grab a card to brag about.
+            </p>
+            <div className="dr-rise dr-rise-3 mt-7 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row">
+              <a href="#build" className="press w-full rounded-full bg-lime px-7 py-4 text-center text-base font-bold text-ink shadow-[0_0_48px_-6px_rgba(198,255,61,0.55)] transition hover:shadow-[0_0_64px_-4px_rgba(198,255,61,0.7)] active:scale-95 sm:w-auto">
                 Start my dry run ↓
               </a>
+              <Link href="/guess" className="press w-full rounded-full border border-line bg-white/[0.03] px-7 py-4 text-center text-base font-semibold text-white transition hover:border-lime/60 sm:w-auto">
+                Play the guess game
+              </Link>
             </div>
-            <div className="mt-8 grid grid-cols-3 gap-2 text-center">
-              {[
-                [g.launches.toLocaleString("en-US"), "real launches"],
-                [g.graduated.toLocaleString("en-US"), "graduated"],
-                [pct(g.rate), "graduation rate"],
-              ].map(([v, l]) => (
-                <div key={l} className="rounded-2xl border border-line bg-panel/60 px-2 py-3">
-                  <div className="text-lg font-semibold tabular-nums sm:text-2xl">{v}</div>
-                  <div className="text-[10px] text-mute sm:text-xs">{l}</div>
+            <DataBadge className="dr-rise dr-rise-4 mt-6" />
+          </section>
+
+          <section className="mb-6 grid grid-cols-3 gap-2 sm:gap-3">
+            {(
+              [
+                [g.launches, "", "real launches"],
+                [g.graduated, "", "graduated"],
+                [Math.round(g.rate * 100), "%", "graduation rate"],
+              ] as const
+            ).map(([v, suf, l]) => (
+              <div key={l} className="dr-glass rounded-2xl px-2 py-4 text-center sm:rounded-3xl sm:py-6">
+                <div className="text-xl font-bold tracking-tight sm:text-4xl">
+                  <CountUp value={v} suffix={suf} />
                 </div>
-              ))}
+                <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-mute sm:text-xs">{l}</div>
+              </div>
+            ))}
+          </section>
+
+          {tg && (
+            <Link
+              href={`/check?token=${tg.token}#result`}
+              className="dr-card mb-6 flex items-center gap-3 rounded-2xl border border-lime/25 bg-gradient-to-r from-lime/[0.08] to-transparent p-4 sm:p-5"
+            >
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-lime text-lg text-ink">🎓</span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-lime">Graduate of the week</div>
+                <div className="truncate text-sm font-semibold sm:text-base">
+                  {tg.name} <span className="text-lime">${tg.symbol}</span>
+                </div>
+                <div className="text-xs text-mute">
+                  {tg.holders.toLocaleString("en-US")} holders · {tg.pairLabel} pair · most-held new graduate
+                </div>
+              </div>
+              <span className="text-sm text-lime">Check →</span>
+            </Link>
+          )}
+
+          <div className="mb-12">
+            <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-mute">
+              <span className="h-1.5 w-1.5 rounded-full bg-lime" /> Live from the snapshot · tap any to check it
             </div>
-          </>
-        )}
-      </section>
+            <LaunchTicker />
+          </div>
+
+          <FeatureNav active="rehearse" />
+
+          <section aria-label="What you can do" className="mb-12 grid gap-3 sm:grid-cols-3">
+            {features.map((x) => (
+              <Link data-focus key={x.f} href={x.href} className="dr-card group relative flex items-start gap-4 overflow-hidden rounded-3xl border border-line bg-panel/80 p-4 sm:block sm:p-6">
+                <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-lime/0 blur-2xl transition group-hover:bg-lime/15" />
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-lime/30 bg-lime/10 text-lime">
+                  <FeatureIcon f={x.f} className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 sm:mt-4">
+                  <div className="text-base font-semibold tracking-tight sm:text-lg">{x.title}</div>
+                  <p className="mt-0.5 text-[13px] leading-relaxed text-mute sm:mt-1 sm:text-sm">{x.body}</p>
+                  <div className="mt-2 text-sm font-semibold text-lime sm:mt-4">
+                    {x.cta} <span className="inline-block transition group-hover:translate-x-1">→</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </section>
+        </>
+      )}
 
       {result}
 
@@ -444,23 +509,7 @@ export default async function Home({ searchParams }: Props) {
       </section>
 
       <FocusFx key={`fx-${runKey}-${ran}`} />
-      <footer className="mt-12 border-t border-line pt-6 text-xs leading-relaxed text-mute">
-        <div className="mb-3 flex items-center justify-between">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={LOGO_LOCKUP} alt="Dry Run" className="h-6 w-auto opacity-80" />
-          <span>
-            Built by{" "}
-            <a className="text-white underline" href="https://x.com/kelcrown" target="_blank" rel="noopener noreferrer">
-              @kelcrown
-            </a>
-          </span>
-        </div>
-        <p>
-          Independent tool, not affiliated with vibe/vibe or Robinhood. Data: official vibe/vibe testnet API, snapshot{" "}
-          {new Date(r.meta.builtAt).toUTCString().slice(5, 22)} UTC. Testnet only, and test assets have no value. History, not a prediction. Not
-          financial advice, and no rewards implied.
-        </p>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }
