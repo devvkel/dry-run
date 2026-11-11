@@ -26,6 +26,13 @@ On [vibe/vibe](https://testnet.vibevibe.fun) (Robinhood Chain testnet), the pair
 
 There are 4 concepts in `brand/` (and `public/brand/`), plus a side-by-side sheet at `logo-options.png`. Regenerate them with `node scripts/build-logos.mjs`. The live one is set in `src/lib/brand.ts` (`LOGO_OPTION`). To swap, change that number and run `cp public/brand/logo-N-mark.svg src/app/icon.svg`.
 
+## v3: check a token, guessing game, weekly data
+
+- **Check a token** (`/check`): paste any vibe/vibe token address or link. Dry Run pulls its real settings (pair, opening buy, tax, routing, airdrop) live from the vibe/vibe API, shows whether it graduated (or how much of its curve is filled), and how launches with the same setup did: graduation rate, sample size, and its rank among all real setups with 50+ launches. Shareable card at `/api/og/check?token=0x…`. Bad or unknown addresses get a clear message.
+- **Guess the graduation** (`/guess`): a random real launch (3+ days old) with its settings, name and image. Call *Graduated* or *Didn't*, and the answer is checked live against vibe/vibe. Score, streak and best streak are kept in `localStorage`. Half the rounds are graduates so one answer can't win every time. *Share my score* gives a link with its own card (`/api/og/guess?score=…&played=…&best=…`). No wallet.
+- **Weekly data refresh**: `.github/workflows/refresh-data.yml` runs every Monday at 05:17 UTC (or on demand from the Actions tab). It runs `npm run data`, checks the result, commits `data/launches.json` and pushes. Vercel redeploys on that push. The new pages show a *Data updated <date>* line.
+- Discreet *Check* and *Guess* links sit in the header.
+
 ## How it works
 
 1. `scripts/build-dataset.mts` pages through every V6 launch on the official vibe/vibe API and writes a compact cache to `data/launches.json` (about 24k launches, ~3 MB).
@@ -43,6 +50,10 @@ There are 4 concepts in `brand/` (and `public/brand/`), plus a side-by-side shee
 | `/?pair=eth&buy=1-3&tax=2&route=holders&airdrop=no&name=Moon%20Cat&ticker=MCAT&x=handle` | The tool. The URL *is* the result, so it can be shared. Without `pair` you get the landing page. |
 | `/api/og?…same params…` | 1200×630 PNG share card (used for `og:image` / `twitter:image` and *Download card*) |
 | `/api/stats?…same params…` | The same result as JSON |
+| `/check?token=0x…` | Check a launched token's real setup and outcome |
+| `/guess` | Guess the graduation game (`/api/guess` = new round, `/api/guess/reveal?token=0x…` = answer) |
+| `/api/og/check?token=0x…`, `/api/og/guess?score=7&played=10&best=4` | Share cards for the two pages above |
+| `/api/img?cid=…&s=sq410` | Launch-image proxy (vibe/vibe's `/media` images are same-origin only) |
 
 `buy` values are `none`, `lt1`, `1-3`, `3-10`, `10-25` and `25+`.
 
@@ -60,7 +71,7 @@ There are 4 concepts in `brand/` (and `public/brand/`), plus a side-by-side shee
 - The API doesn't expose sniper-tax outcomes or who bought early, so Dry Run doesn't model them.
 - Opening buy is measured in tokens (% of supply), not ETH spent.
 - Volume is only available as a 24h window, so it isn't used for comparisons.
-- The dataset is a snapshot. Run `npm run data` to refresh it.
+- The dataset is a snapshot, refreshed weekly by a GitHub Action (or run `npm run data`). `/check` and the game's answers read the live API, so brand-new tokens and fresh curve progress still show up between refreshes. Holder counts come from the snapshot.
 
 ## Run locally
 
@@ -79,7 +90,7 @@ Requires Node 22.6+ (the data script uses native TypeScript type stripping).
 1. Push this repo to GitHub.
 2. Import it in Vercel. The framework is auto-detected as Next.js, and no env vars are required.
 3. Optional: set `NEXT_PUBLIC_SITE_URL=https://your-domain` so share links and card URLs use your domain. Otherwise Vercel's production URL is used.
-4. To refresh data, run `npm run data`, then commit and push. A scheduled GitHub Action could automate this.
+4. Data refreshes itself weekly via the GitHub Action above. To refresh now, run it from the Actions tab (*Weekly data refresh → Run workflow*), or run `npm run data`, then commit and push.
 
 ---
 

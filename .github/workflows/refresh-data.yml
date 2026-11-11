@@ -1,0 +1,53 @@
+name: Weekly data refresh
+
+# Pulls every V6 launch from the official vibe/vibe testnet API, rewrites
+# data/launches.json and pushes it. The push triggers a normal Vercel deploy,
+# so the site (and its "Data updated" line) picks up the newest launches.
+on:
+  schedule:
+    - cron: "17 5 * * 1" # Mondays 05:17 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-refresh
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Remember the current launch count
+        run: echo "OLD_COUNT=$(node -p 'require("./data/launches.json").count')" >> "$GITHUB_ENV"
+
+      - name: Rebuild dataset from the vibe/vibe API
+        run: npm run data
+
+      - name: Sanity check (never ship a broken or shrunken dataset)
+        run: |
+          node -e '
+            const d = require("./data/launches.json");
+            const old = Number(process.env.OLD_COUNT || 0);
+            console.log(`launches: ${old} -> ${d.count}, builtAt ${d.builtAt}`);
+            if (!Array.isArray(d.rows) || d.rows.length !== d.count) throw new Error("bad rows");
+            if (d.count < old * 0.95) throw new Error("dataset shrank by more than 5%, refusing to commit");
+          '
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          git add data/launches.json
+          if git diff --cached --quiet; then echo "No changes"; exit 0; fi
+          COUNT=$(node -p 'require("./data/launches.json").count')
+          git commit -m "Weekly data refresh: ${COUNT} launches"
+          git push
