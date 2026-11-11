@@ -36,7 +36,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const base = { title: "Check a token · Dry Run", description: "Paste any vibe/vibe launch and see how its real setup ranks against every launch like it." };
   if (!addr) {
     const image = { url: "/api/og/check", width: 1200, height: 630, alt: base.title };
-    return { ...base, openGraph: { ...base, images: [image], siteName: "Dry Run" }, twitter: { card: "summary_large_image", ...base, images: [image] } };
+    return { ...base, alternates: { canonical: "/check" }, openGraph: { ...base, url: "/check", images: [image], siteName: "Dry Run" }, twitter: { card: "summary_large_image", ...base, images: [image] } };
   }
   const l = await lookupToken(addr);
   if (l.kind !== "ok") return base;

@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const title = c ? `I called ${c.score} of ${c.played} vibe/vibe launches right. Beat me?` : "Guess the Graduation · Dry Run";
   const description = "Real vibe/vibe launches. Did they graduate? Guess, keep your streak, share your score. No wallet needed.";
   const image = { url: c ? `/api/og/guess?score=${c.score}&played=${c.played}&best=${c.best}` : "/api/og/guess", width: 1200, height: 630, alt: title };
-  return { title, description, openGraph: { title, description, images: [image], siteName: "Dry Run" }, twitter: { card: "summary_large_image", title, description, images: [image] } };
+  return { title, description, alternates: { canonical: "/guess" }, openGraph: { title, description, url: "/guess", images: [image], siteName: "Dry Run" }, twitter: { card: "summary_large_image", title, description, images: [image] } };
 }
 
 export default async function GuessPage({ searchParams }: Props) {

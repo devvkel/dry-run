@@ -27,7 +27,7 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     const title = "Dry Run: rehearse your vibe/vibe launch before it's real";
     const description = "Launch settings lock forever. Dry Run shows how real vibe/vibe launches like yours actually did. Free, testnet, no wallet needed.";
     const image = { url: "/api/og", width: 1200, height: 630, alt: title };
-    return { title, description, openGraph: { title, description, images: [image], siteName: "Dry Run" }, twitter: { card: "summary_large_image", title, description, images: [image] } };
+    return { title, description, alternates: { canonical: "/" }, openGraph: { title, description, url: "/", images: [image], siteName: "Dry Run", type: "website" }, twitter: { card: "summary_large_image", title, description, images: [image] } };
   }
   const q = parseQuery(sp);
   const who = parsePersona(sp);
